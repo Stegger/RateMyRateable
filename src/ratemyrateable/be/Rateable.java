@@ -11,7 +11,8 @@ import java.io.Serializable;
  *
  * @author pgn
  */
-public class Rateable implements Serializable {
+public class Rateable implements Serializable
+{
 
     /**
      * What is it that we are rating
@@ -29,7 +30,8 @@ public class Rateable implements Serializable {
      * @param description
      * @param rate
      */
-    public Rateable(String description, double rate) {
+    public Rateable(String description, double rate)
+    {
         this.description = description;
         this.rate = rate;
     }
@@ -39,7 +41,8 @@ public class Rateable implements Serializable {
      *
      * @return The description of the rateable
      */
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
@@ -48,12 +51,14 @@ public class Rateable implements Serializable {
      *
      * @return The rate of the rateable
      */
-    public double getRate() {
+    public double getRate()
+    {
         return rate;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return description + ":" + rate;
     }
 

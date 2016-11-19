@@ -15,14 +15,16 @@ import javafx.stage.Stage;
  *
  * @author pgn
  */
-public class App extends Application {
-    
+public class App extends Application
+{
+
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage stage) throws Exception
+    {
         Parent root = FXMLLoader.load(getClass().getResource("/ratemyrateable/gui/views/RateMyView.fxml"));
-        
+
         Scene scene = new Scene(root);
-        
+
         stage.setScene(scene);
         stage.show();
     }
@@ -30,8 +32,9 @@ public class App extends Application {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         launch(args);
     }
-    
+
 }

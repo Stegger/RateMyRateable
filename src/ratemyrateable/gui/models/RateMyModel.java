@@ -5,8 +5,13 @@
  */
 package ratemyrateable.gui.models;
 
+import java.util.Map;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Series;
 import ratemyrateable.be.Rateable;
 import ratemyrateable.gui.models.be.RateableModel;
 
@@ -14,8 +19,9 @@ import ratemyrateable.gui.models.be.RateableModel;
  *
  * @author pgn
  */
-public class RateMyModel {
-    
+public class RateMyModel
+{
+
     private static RateMyModel INSTANCE;
 
     /**
@@ -32,9 +38,26 @@ public class RateMyModel {
      * The lowest rated of all rateables in the model.
      */
     private final RateableModel lowestRated;
-    
-    public static synchronized RateMyModel getInstance() {
-        if (INSTANCE == null) {
+
+    /**
+     * The average of all the ratings
+     */
+    private final DoubleProperty average;
+
+    /**
+     * The distribution of the different ratings
+     */
+    private final ObservableList<Series<Double, Integer>> chartDistributionData;
+
+    /**
+     * The method to get a reference to this Singleton:
+     *
+     * @return
+     */
+    public static synchronized RateMyModel getInstance()
+    {
+        if (INSTANCE == null)
+        {
             INSTANCE = new RateMyModel();
         }
         return INSTANCE;
@@ -43,10 +66,13 @@ public class RateMyModel {
     /**
      * Constructs a new RateMyModel
      */
-    private RateMyModel() {
+    private RateMyModel()
+    {
         allRateables = FXCollections.observableArrayList();
         highestRated = new RateableModel();
         lowestRated = new RateableModel();
+        average = new SimpleDoubleProperty(0);
+        chartDistributionData = FXCollections.observableArrayList();
     }
 
     /**
@@ -54,32 +80,68 @@ public class RateMyModel {
      *
      * @return
      */
-    public ObservableList<Rateable> getAllRateables() {
+    public ObservableList<Rateable> getAllRateables()
+    {
         return allRateables;
     }
-    
-    public void addNewRateAble(Rateable ratModel) {
-        allRateables.add(ratModel);
+
+    /**
+     * Adds a new rateable to this model.
+     *
+     * @param ratModel
+     */
+    public void addNewRateAble(Rateable ratModel)
+    {
+        allRateables.add(ratModel);        
     }
-    
-    public void clearAll() {
+
+    /**
+     * Clears the entire model.
+     */
+    public void clearAll()
+    {
         allRateables.clear();
+        highestRated.clear();
+        lowestRated.clear();
+        average.set(0);
+        chartDistributionData.clear();
     }
-    
-    public void setHighestRatedModel(Rateable model) {
+
+    public void setHighestRatedModel(Rateable model)
+    {
         highestRated.setRateable(model);
     }
-    
-    public RateableModel getHighestRated() {
+
+    public RateableModel getHighestRated()
+    {
         return highestRated;
     }
-    
-    public void setLowestRatedModel(Rateable model) {
+
+    public void setLowestRatedModel(Rateable model)
+    {
         lowestRated.setRateable(model);
     }
-    
-    public RateableModel getLowestRated() {
+
+    public RateableModel getLowestRated()
+    {
         return lowestRated;
     }
+
+    public DoubleProperty getAverage()
+    {
+        return average;
+    }
+
+    public void setAverage(double average)
+    {
+        this.average.set(average);
+    }
+
     
+    
+    public ObservableList<Series<Double, Integer>> getDistributionData()
+    {
+        return chartDistributionData;
+    }
+
 }

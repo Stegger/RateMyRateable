@@ -15,13 +15,14 @@ import ratemyrateable.be.Rateable;
  *
  * @author pgn
  */
-public class RateableModel {
-    
+public class RateableModel
+{
+
     private Rateable rateable;
-    
+
     private final StringProperty descriptionProperty;
     private final DoubleProperty rateProperty;
-    
+
     /**
      * Constructs a new Rateable model.
      */
@@ -30,9 +31,10 @@ public class RateableModel {
         descriptionProperty = new SimpleStringProperty("N/A");
         rateProperty = new SimpleDoubleProperty(0);
     }
-    
+
     /**
      * Sets the rateable object that the model should represent.
+     *
      * @param rateable The rateable to set.
      */
     public void setRateable(Rateable rateable)
@@ -44,26 +46,39 @@ public class RateableModel {
 
     /**
      * Gets the currently set Rateable object of this RateableModel.
+     *
      * @return The currently set Rateable object.
      */
-    public Rateable getRateable() {
+    public Rateable getRateable()
+    {
         return rateable;
     }
 
     /**
      * Gets the description of the currently set Rateable.
+     *
      * @return The description of the currently set Rateable.
-     */ 
-    public StringProperty getDescriptionProperty() {
+     */
+    public StringProperty getDescriptionProperty()
+    {
         return descriptionProperty;
     }
 
     /**
      * Gets the rate of the currently set Rateable.
+     *
      * @return The rate of the currently set Rateable.
      */
-    public DoubleProperty getRateProperty() {
+    public DoubleProperty getRateProperty()
+    {
         return rateProperty;
     }
-    
+
+    public void clear()
+    {
+        descriptionProperty.setValue("N/A");
+        rateProperty.set(0);
+        rateable = null;
+    }
+
 }
