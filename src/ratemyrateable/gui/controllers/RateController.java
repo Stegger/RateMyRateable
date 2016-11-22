@@ -5,21 +5,26 @@
  */
 package ratemyrateable.gui.controllers;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Set;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 import ratemyrateable.be.Rateable;
 import ratemyrateable.bll.RateableManager;
 import ratemyrateable.gui.models.RateMyModel;
@@ -30,7 +35,7 @@ import ratemyrateable.gui.models.RateMyModel;
  */
 public class RateController implements Initializable
 {
-    
+
     @FXML
     private TextField txtDescription;
     @FXML
@@ -53,73 +58,14 @@ public class RateController implements Initializable
     private Label lblAverageRate;
     @FXML
     private LineChart<Number, Number> chartRatingDistribution;
-    
+    @FXML
+    private AnchorPane root;
+
     private RateMyModel rateMyModel;
-    private RateableManager rateManager;
-    
+
     public RateController()
     {
         rateMyModel = RateMyModel.getInstance();
-        rateManager = new RateableManager();
-    }
-
-    /**
-     * Adds a new rateable to the list.
-     *
-     * @param event
-     */
-    @FXML
-    private void handleAddNewRateable(ActionEvent event)
-    {
-        //First I create a new Rateable:
-        String description = txtDescription.getText().trim();
-        double rate = Double.parseDouble(txtRate.getText().trim());
-        Rateable rat = rateManager.creatNewRateable(description, rate);
-
-        //Then I add it to the model
-        rateMyModel.addNewRateAble(rat);
-
-        //I update my models highest and lowest objects:
-        Rateable high = rateManager.getHighestRated(rateMyModel.getAllRateables());
-        rateMyModel.setHighestRatedModel(high);
-        Rateable low = rateManager.getLowestRated(rateMyModel.getAllRateables());
-        rateMyModel.setLowestRatedModel(low);
-
-        //I calculate and update the average of the model:
-        double average = rateManager.average(rateMyModel.getAllRateables());
-        rateMyModel.setAverage(average);
-
-        //We update the chart:
-        setChartData();
-
-        //I reset the GUI for adding new rateables
-        txtDescription.clear();
-        txtRate.clear();
-    }
-    
-    public void setChartData()
-    {
-        Map<Double, Integer> data = rateManager.distributionOfRatings(rateMyModel.getAllRateables());
-        XYChart.Series<Number, Number> series = new XYChart.Series();
-        series.setName("Ratings");
-        for (Double d : data.keySet())
-        {
-            series.getData().add(new XYChart.Data<Number, Number>(d, data.get(d)));
-        }
-        chartRatingDistribution.getData().clear();
-        chartRatingDistribution.getData().add(series);
-    }
-
-    /**
-     * Clears all ratings.
-     *
-     * @param event
-     */
-    @FXML
-    private void handleClearAllRateables(ActionEvent event)
-    {
-        rateMyModel.clearAll();
-        chartRatingDistribution.getData().clear();
     }
 
     /**
@@ -133,6 +79,36 @@ public class RateController implements Initializable
     {
         correctLineChart();
         dataBind();
+    }
+
+    /**
+     * Adds a new rateable to the model.
+     *
+     * @param event
+     */
+    @FXML
+    private void handleAddNewRateable(ActionEvent event)
+    {
+        //First I create a new Rateable:
+        String description = txtDescription.getText().trim();
+        double rate = Double.parseDouble(txtRate.getText().trim());
+        rateMyModel.addNewRateAble(description, rate);
+
+        //I reset the GUI for adding new rateables
+        txtDescription.clear();
+        txtDescription.requestFocus();
+        txtRate.clear();
+    }
+
+    /**
+     * Clears all ratings.
+     *
+     * @param event
+     */
+    @FXML
+    private void handleClearAllRateables(ActionEvent event)
+    {
+        rateMyModel.clearAll();
     }
 
     /**
@@ -154,7 +130,10 @@ public class RateController implements Initializable
         txtLowRate.textProperty().bind(rateMyModel.getLowestRated().getRateProperty().asString());
 
         //And binding for the average label:
-        lblAverageRate.textProperty().bind(rateMyModel.getAverage().asString());      
+        lblAverageRate.textProperty().bind(rateMyModel.getAverage().asString());
+
+        //Binds to the chart data:
+        chartRatingDistribution.dataProperty().bindBidirectional(rateMyModel.getChartData());
     }
 
     /**
@@ -165,7 +144,21 @@ public class RateController implements Initializable
     @FXML
     private void handleSaveRatings(ActionEvent event)
     {
-        //TODO Save all ratings to file!
+        try
+        {
+            FileChooser fileChooser = new FileChooser();
+            Window win = root.getScene().getWindow();
+            File file = fileChooser.showSaveDialog(win);
+            rateMyModel.SaveRateablesToFile(file);
+        } catch (IOException ex)
+        {
+            ex.printStackTrace();
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Save error");
+            alert.setHeaderText("Error when saving ratings:");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
     }
 
     /**
@@ -176,9 +169,22 @@ public class RateController implements Initializable
     @FXML
     private void handleLoadRatings(ActionEvent event)
     {
-        //TODO Load all ratings from file!
+        try
+        {
+            FileChooser fileChooser = new FileChooser();
+            Window win = root.getScene().getWindow();
+            File file = fileChooser.showOpenDialog(win);
+            rateMyModel.LoadRateablesFromFile(file);
+        } catch (Exception ex)
+        {
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Load error");
+            alert.setHeaderText("Error when loading ratings:");
+            alert.setContentText(ex.getMessage());
+            alert.showAndWait();
+        }
     }
-    
+
     private void correctLineChart()
     {
         chartRatingDistribution.getXAxis().setLabel("Ratings");
@@ -186,5 +192,5 @@ public class RateController implements Initializable
         chartRatingDistribution.getYAxis().setLabel("Occurences");
         chartRatingDistribution.getYAxis().autoRangingProperty().set(true);
     }
-    
+
 }

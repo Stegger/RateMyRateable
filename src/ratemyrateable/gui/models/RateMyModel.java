@@ -5,14 +5,20 @@
  */
 package ratemyrateable.gui.models;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.chart.XYChart;
 import javafx.scene.chart.XYChart.Series;
 import ratemyrateable.be.Rateable;
+import ratemyrateable.bll.RateableManager;
 import ratemyrateable.gui.models.be.RateableModel;
 
 /**
@@ -47,7 +53,10 @@ public class RateMyModel
     /**
      * The distribution of the different ratings
      */
-    private final ObservableList<Series<Double, Integer>> chartDistributionData;
+    private final Property<ObservableList<Series<Number, Number>>> chartDistributionData;
+    private ObservableList<Series<Number, Number>> internalChartDistData;
+
+    private RateableManager rateableManager;
 
     /**
      * The method to get a reference to this Singleton:
@@ -68,11 +77,15 @@ public class RateMyModel
      */
     private RateMyModel()
     {
+        rateableManager = new RateableManager();
+
         allRateables = FXCollections.observableArrayList();
         highestRated = new RateableModel();
         lowestRated = new RateableModel();
         average = new SimpleDoubleProperty(0);
-        chartDistributionData = FXCollections.observableArrayList();
+        chartDistributionData = new SimpleObjectProperty<>();
+        internalChartDistData = FXCollections.observableArrayList();
+        chartDistributionData.setValue(internalChartDistData);
     }
 
     /**
@@ -86,16 +99,6 @@ public class RateMyModel
     }
 
     /**
-     * Adds a new rateable to this model.
-     *
-     * @param ratModel
-     */
-    public void addNewRateAble(Rateable ratModel)
-    {
-        allRateables.add(ratModel);        
-    }
-
-    /**
      * Clears the entire model.
      */
     public void clearAll()
@@ -104,22 +107,12 @@ public class RateMyModel
         highestRated.clear();
         lowestRated.clear();
         average.set(0);
-        chartDistributionData.clear();
-    }
-
-    public void setHighestRatedModel(Rateable model)
-    {
-        highestRated.setRateable(model);
+        internalChartDistData.clear();
     }
 
     public RateableModel getHighestRated()
     {
         return highestRated;
-    }
-
-    public void setLowestRatedModel(Rateable model)
-    {
-        lowestRated.setRateable(model);
     }
 
     public RateableModel getLowestRated()
@@ -132,16 +125,62 @@ public class RateMyModel
         return average;
     }
 
-    public void setAverage(double average)
+    public void addNewRateAble(String description, double rate)
     {
-        this.average.set(average);
+        Rateable rating = rateableManager.creatNewRateable(description, rate);
+
+        allRateables.add(rating);
+
+        //We refresh the high, low and average:
+        refreshDerivedData();
+
+        //We update the chart:
+        setChartData();
     }
 
-    
-    
-    public ObservableList<Series<Double, Integer>> getDistributionData()
+    private void refreshDerivedData()
+    {
+        //THe highest in the list:
+        Rateable highRat = rateableManager.getHighestRated(allRateables);
+        highestRated.setRateable(highRat);
+
+        //The lowest in the list:
+        Rateable lowRat = rateableManager.getLowestRated(allRateables);
+        lowestRated.setRateable(lowRat);
+
+        //I calculate and update the average of the model:
+        double avg = rateableManager.average(allRateables);
+        average.set(avg);
+    }
+
+    private void setChartData()
+    {
+        Map<Double, Integer> data = rateableManager.distributionOfRatings(allRateables);
+        XYChart.Series<Number, Number> serie = new Series();
+        for (Double d : data.keySet())
+        {
+            serie.getData().add(new XYChart.Data<Number, Number>(d, data.get(d)));
+        }
+        internalChartDistData.clear();
+        internalChartDistData.add(serie);
+    }
+
+    public Property<ObservableList<Series<Number, Number>>> getChartData()
     {
         return chartDistributionData;
+    }
+
+    public void SaveRateablesToFile(File file) throws IOException
+    {
+        rateableManager.saveRatings(allRateables, file);
+    }
+
+    public void LoadRateablesFromFile(File file) throws IOException, ClassNotFoundException
+    {
+        List<Rateable> newAllRateables = rateableManager.loadRatings(file);
+        allRateables.setAll(newAllRateables);
+        refreshDerivedData();
+        setChartData();
     }
 
 }
