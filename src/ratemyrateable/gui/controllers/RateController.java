@@ -133,7 +133,7 @@ public class RateController implements Initializable
         lblAverageRate.textProperty().bind(rateMyModel.getAverage().asString());
 
         //Binds to the chart data:
-        chartRatingDistribution.dataProperty().bindBidirectional(rateMyModel.getChartData());
+        chartRatingDistribution.dataProperty().bind(rateMyModel.getChartData());
     }
 
     /**

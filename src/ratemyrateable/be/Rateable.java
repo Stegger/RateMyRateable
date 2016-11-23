@@ -18,7 +18,7 @@ public class Rateable implements Serializable
      * What is it that we are rating
      */
     private final String description;
-
+    
     /**
      * The rate of the rateable
      */
