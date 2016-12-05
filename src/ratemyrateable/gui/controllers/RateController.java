@@ -8,8 +8,11 @@ package ratemyrateable.gui.controllers;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Formatter;
 import java.util.Map;
 import java.util.ResourceBundle;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -25,6 +28,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.util.StringConverter;
 import ratemyrateable.be.Rateable;
 import ratemyrateable.bll.RateableManager;
 import ratemyrateable.gui.models.RateMyModel;
@@ -125,10 +129,32 @@ public class RateController implements Initializable
 
         //Binding og high and low:
         txtHighDescription.textProperty().bind(rateMyModel.getHighestRated().getDescriptionProperty());
-        txtHighRate.textProperty().bind(rateMyModel.getHighestRated().getRateProperty().asString());
+//        txtHighRate.textProperty().bind(rateMyModel.getHighestRated().getRateProperty().asString());
+        
+    
+
+    Bindings.bindBidirectional(txtHighRate.textProperty(), rateMyModel.getHighestRated().getRateProperty(), new StringConverter<Number>()
+    {
+            @Override
+            public Number fromString(String string)
+            {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+
+            @Override
+            public String toString(Number object)
+            {
+                double d = object.doubleValue();
+                
+                return "WoW a rating of " + d + "!!!!";
+            }
+        });
+        
         txtLowDescription.textProperty().bind(rateMyModel.getLowestRated().getDescriptionProperty());
         txtLowRate.textProperty().bind(rateMyModel.getLowestRated().getRateProperty().asString());
 
+        
+        
         //And binding for the average label:
         lblAverageRate.textProperty().bind(rateMyModel.getAverage().asString());
 
